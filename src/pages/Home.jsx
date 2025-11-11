@@ -27,7 +27,7 @@ function Home () {
     const [formData, setFormData] = useState(null);
     
     const [items, setItems] = useState([
-        { item: '', quantity: 1, rate: 0 }
+        { item: '', quantity: '', rate: '' }
     ]);
 
     const calculateTotal = () => {
@@ -104,6 +104,11 @@ function Home () {
     };
 
     const removeItem = (index) => {
+        if (items.length === 1) {
+            alert("You must have at least one item in your invoice.");
+            return;
+        }
+
         const updatedItems = items.filter((_, i) => i !== index);
         setItems(updatedItems);
     };
@@ -190,65 +195,64 @@ function Home () {
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
                             </div>
+                        </div>
+                    </div>
 
-                            <div>
-                                <h3 className="font-semibold text-lg text-gray-800 mb-2">Items</h3>
-                                {items.map((item, index) => (
-                                    <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-center mb-2">
-                                        <input
-                                            type="text"
-                                            name='item'
-                                            placeholder="Item name"
-                                            value={item.item}
-                                            onChange={(e) => handleItemChange(index, 'item', e.target.value)}
-                                            className="border p-2 rounded-md"
-                                        />
-                                        <input
-                                            type="number"
-                                            name='quantity'
-                                            placeholder="Qty"
-                                            value={item.quantity}
-                                            onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value))}
-                                            className="border p-2 rounded-md"
-                                        />
-                                        <input
-                                            type="number"
-                                            name="rate"
-                                            placeholder="Rate"
-                                            value={item.rate}
-                                            onChange={(e) => handleItemChange(index, 'rate', parseFloat(e.target.value))}
-                                            className="border p-2 rounded-md"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeItem(index)}
-                                            className="bg-red-500 hover:bg-red-600 text-white rounded-md px-2 py-1"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                ))}
-
-                                <div className="flex justify-between items-center mt-3">
+                    <div>
+                        <h3 className="font-semibold text-lg text-gray-800 mb-2">Items</h3>
+                        {items.map((item, index) => (
+                            <div key={index} className="grid grid-cols-6 gap-3 items-center mb-2">
+                                <input
+                                    type="text"
+                                    name='item'
+                                    placeholder="Item name"
+                                    value={item.item}
+                                    onChange={(e) => handleItemChange(index, 'item', e.target.value)}
+                                    className="border p-2 rounded-md col-span-2"
+                                />
+                                <input
+                                    type="number"
+                                    name='quantity'
+                                    placeholder="Qty"
+                                    value={item.quantity}
+                                    onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value))}
+                                    className="border p-2 rounded-md"
+                                />
+                                <input
+                                    type="number"
+                                    name="rate"
+                                    placeholder="Rate"
+                                    value={item.rate}
+                                    onChange={(e) => handleItemChange(index, 'rate', parseFloat(e.target.value))}
+                                    className="border p-2 rounded-md"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={addItem}
+                                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md"
+                                >
+                                    + Add Item
+                                </button>
+                                {items.length > 1 && index !== 0 && (
                                     <button
                                         type="button"
-                                        onClick={addItem}
-                                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md"
+                                        onClick={() => removeItem(index)}
+                                        className="bg-red-500 hover:bg-red-600 text-white rounded-md px-2 py-1"
                                     >
-                                        + Add Item
+                                        Remove
                                     </button>
-                                </div>
+                                )}
                             </div>
+                        ))}
+                    </div>
 
-                            <div className="pt-6">
-                                <button
-                                    type="submit"
-                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition"
-                                >
-                                    Go For Sign
-                                </button>
-                            </div>
-                        </div>
+                    <div className="pt-6">
+                        <button
+                            type="submit"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition"
+                        >
+                            Go For Sign
+                        </button>
                     </div>
                 </form>
             </div>

@@ -127,12 +127,14 @@ function Invoice() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr className="text-black">
-                                            <td className="px-4 py-2 border border-gray-400">{ formData.item }</td>
-                                            <td className="px-4 py-2 border border-gray-400">{ formData.quantity }</td>
-                                            <td className="px-4 py-2 border border-gray-400">{ formData.rate }</td>
-                                            <td className="px-4 py-2 border border-gray-400">{ formData.quantity * formData.rate }</td>
-                                        </tr>
+                                        {formData.items.map((i, idx) => (
+                                            <tr className="text-black" key={idx}>
+                                                <td className="border border-gray-400 px-4 py-2">{i.item}</td>
+                                                <td className="border border-gray-400 px-4 py-2">{i.quantity}</td>
+                                                <td className="border border-gray-400 px-4 py-2">{i.rate}</td>
+                                                <td className="border border-gray-400 px-4 py-2">{i.quantity * i.rate}</td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </td>
