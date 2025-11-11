@@ -73,8 +73,6 @@ function Home () {
             setSignature(signatureRef.current.getTrimmedCanvas().toDataURL('image/png'));
 
             if (data) {
-                console.log('Form Data:', {...data, signature});
-                console.log('Signature Data URL:', signatureRef.current.getTrimmedCanvas().toDataURL('image/png'));
                 navigate('/invoice', { 
                     state: { 
                         ...data, 
@@ -201,7 +199,7 @@ function Home () {
                     <div>
                         <h3 className="font-semibold text-lg text-gray-800 mb-2">Items</h3>
                         {items.map((item, index) => (
-                            <div key={index} className="grid grid-cols-6 gap-3 items-center mb-2">
+                            <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-3 items-center mb-2">
                                 <input
                                     type="text"
                                     name='item'
