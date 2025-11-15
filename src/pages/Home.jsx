@@ -116,7 +116,7 @@ function Home () {
          <div className="min-h-screen bg-gray-100 py-10 px-4">
             <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-8">
                 <h2 className="text-2xl text-center font-bold mb-6 text-gray-800">
-                    Invoice Form
+                    Delivery Form
                 </h2>
 
                 <form
@@ -126,73 +126,62 @@ function Home () {
                 >
                     <div>
                         <label className="block text-sm font-medium text-gray-700">
-                            Name
+                            Deliver To:
                         </label>
                         <input
                             type="text"
                             name="name"
-                            placeholder="Enter your name"
+                            placeholder="Enter person delivering to"
                             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Address
-                        </label>
-                        <input
-                            type="text"
-                            name="address"
-                            placeholder="Enter your address"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">
+                                Order No.
+                            </label>
+                            <input
+                                type="text"
+                                name="address"
+                                placeholder="Enter Order No."
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">
+                                Date
+                            </label>
+                            <input
+                                type="date"
+                                name="date"
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                        </div>
                     </div>
 
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700">
-                                Address Line 1
+                                On Behalf Of
                             </label>
                             <input
                                 type="text"
-                                name="address-line1"
-                                placeholder="Enter address line 1"
+                                name="on-behalf"
+                                placeholder="Enter name"
                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
                                 />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700">
-                            Address Line 2
+                                Instructed By
                             </label>
                             <input
                                 type="text"
-                                name="address-line2"
-                                placeholder="Enter address line 2"
+                                name="instructor"
+                                placeholder="Enter name"
                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
                                 />
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Invoice Date
-                                </label>
-                                <input
-                                    type="date"
-                                    name="invoice-date"
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Due Date
-                                </label>
-                                <input
-                                    type="date"
-                                    name="due-date"
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                            </div>
                         </div>
                     </div>
 
@@ -200,14 +189,6 @@ function Home () {
                         <h3 className="font-semibold text-lg text-gray-800 mb-2">Items</h3>
                         {items.map((item, index) => (
                             <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-3 items-center mb-2">
-                                <input
-                                    type="text"
-                                    name='item'
-                                    placeholder="Item name"
-                                    value={item.item}
-                                    onChange={(e) => handleItemChange(index, 'item', e.target.value)}
-                                    className="border p-2 rounded-md col-span-2"
-                                />
                                 <input
                                     type="number"
                                     name='quantity'
@@ -217,12 +198,12 @@ function Home () {
                                     className="border p-2 rounded-md"
                                 />
                                 <input
-                                    type="number"
-                                    name="rate"
-                                    placeholder="Rate"
-                                    value={item.rate}
-                                    onChange={(e) => handleItemChange(index, 'rate', parseFloat(e.target.value))}
-                                    className="border p-2 rounded-md"
+                                    type="text"
+                                    name='item'
+                                    placeholder="Item name"
+                                    value={item.item}
+                                    onChange={(e) => handleItemChange(index, 'item', e.target.value)}
+                                    className="border p-2 rounded-md col-span-3"
                                 />
                                 <button
                                     type="button"
