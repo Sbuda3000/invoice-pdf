@@ -54,6 +54,10 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.hide {
+  display: none;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -66,3 +70,38 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+@font-face {
+  font-family: 'ChickenLovers';
+  src: url('/fonts/Chickens\ Lovers.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'SoftItalics';
+  src: url('/fonts/SoftItalic.ttf') format('truetype');
+}
+
+
+/* Fixed A4 canvas size */
+.pod-a4 {
+  width: 900px;   /* ~210mm at 96dpi */
+  /* height: 1123px; ~297mm at 96dpi */
+  padding: 2rem;  /* adjust as needed */
+  box-sizing: border-box;
+}
+
+/* On small screens, scale it down visually but keep size for html2canvas */
+@media (max-width: 900px) {
+  .pod-a4 {
+    transform: scale(0.7);
+    transform-origin: top center;
+  }
+}
+
+@media (max-width: 600px) {
+  .pod-a4 {
+    transform: scale(0.47);
+    transform-origin: left top;
+  }
+}
+

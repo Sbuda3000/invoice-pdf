@@ -4,7 +4,7 @@ import {
 } from "react-router";
 
 import Home from './pages/Home';
-import Invoice from "./pages/Invoice";
+import ProofOfDelivery from "./pages/ProofOfDelivery";
 
 import './App.css';
 
@@ -15,8 +15,8 @@ function App() {
       element: <Home />
     },
     {
-      path: "/invoice",
-      element: <Invoice />
+      path: "/proof-of-delivery",
+      element: <ProofOfDelivery />
     }
   ])
   return (<RouterProvider router={router} />);
