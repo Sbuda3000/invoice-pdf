@@ -128,7 +128,7 @@ function ProofOfDelivery() {
     };
  
     return ( 
-        <div className="bg-gray-100 h-[800px] w-full">
+        <div className="bg-gray-100 h-auto w-full">
             <div className="max-w-4xl mx-auto flex justify-around items-center mb-4 pt-2">
                 <div className="flex items-center space-x-2">
                     <button
@@ -158,7 +158,7 @@ function ProofOfDelivery() {
                 </button>
             </div>  
 
-            <div id="pod-content" className="mx-auto bg-white px-8 py-14 rounded-lg shadow-md text-sm flex flex-col pod-a4">
+            <div id="pod-content" className="bg-white px-8 py-14 rounded-lg shadow-md text-sm flex flex-col pod-a4">
                 <p className="text-black text-center font-bold">DELIVERY NOTE <span className="absolute left-[60%] text-4xl font-bold text-red-500 whitespace-pre-wrap" style={{fontFamily: "SoftItalics" }}>N <span className="absolute left-[12%] bottom-[10%]">ọ</span> {podNumber}</span> </p>
                 <div className="flex justify-between">
                     <table className="table-fixed w-80 h-16">
