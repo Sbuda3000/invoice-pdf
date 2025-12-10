@@ -24,11 +24,37 @@ function ProofOfDelivery() {
         localStorage.setItem("lastPodNumber", num);
     };
 
-    const downloadPDF = async () => {
-        const element = document.getElementById("pod-content");
-        if (!element) return;
+    // Manual increment/decrement
+    const incrementPodNumber = () => savePodNumber(podNumber + 1);
 
-        // Ignore any CSS transforms when rendering
+    const handleSharePdf = async () => {
+        const file = await generatePdfFile();
+        if (!file) return;
+
+        if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
+            alert("Your device does not support sharing files.");
+            return;
+        }
+
+        try {
+            await navigator.share({
+                title: "Proof of Delivery",
+                text: "Please find attached the POD.",
+                files: [file],     // attachment, not link
+            });
+
+            // Auto-increment after successful share
+            incrementPodNumber();
+
+        } catch (e) {
+            if (e.name !== "AbortError") console.error("Share failed:", e);
+        }
+    };
+
+    const generatePdfFile = async () => {
+        const element = document.getElementById("pod-content");
+        if (!element) return null;
+
         const canvas = await html2canvas(element, {
             scale: 2,
             useCORS: true,
@@ -41,8 +67,8 @@ function ProofOfDelivery() {
         const pdf = new jsPDF("p", "mm", "a4");
         const imgData = canvas.toDataURL("image/png");
 
-        const pdfWidth = pdf.internal.pageSize.getWidth();   // 210mm
-        const pdfHeight = pdf.internal.pageSize.getHeight(); // 297mm
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
 
         const imgWidth = canvas.width;
         const imgHeight = canvas.height;
@@ -52,19 +78,16 @@ function ProofOfDelivery() {
         let renderWidth, renderHeight, x, y;
 
         if (Math.abs(imgRatio - pageRatio) < 0.01) {
-            // Same ratio as A4, fill page exactly
             renderWidth = pdfWidth;
             renderHeight = pdfHeight;
             x = 0;
             y = 0;
         } else if (imgRatio > pageRatio) {
-            // Wider image: fit width, center vertically
             renderWidth = pdfWidth;
             renderHeight = pdfWidth / imgRatio;
             x = 0;
             y = (pdfHeight - renderHeight) / 2;
         } else {
-            // Taller image: fit height, center horizontally
             renderHeight = pdfHeight;
             renderWidth = pdfHeight * imgRatio;
             x = (pdfWidth - renderWidth) / 2;
@@ -74,31 +97,9 @@ function ProofOfDelivery() {
         pdf.addImage(imgData, "PNG", x, y, renderWidth, renderHeight);
 
         const fileName = buildPodFileName();
+        const pdfBlob = pdf.output("blob");
 
-        try {
-            if ("showSaveFilePicker" in window) {
-            const handle = await window.showSaveFilePicker({
-                suggestedName: fileName,
-                types: [
-                {
-                    description: "PDF Files",
-                    accept: { "application/pdf": [".pdf"] },
-                },
-                ],
-            });
-
-            const writable = await handle.createWritable();
-            const pdfBlob = pdf.output("blob");
-            await writable.write(pdfBlob);
-            await writable.close();
-
-            incrementPodNumber();
-            } else {
-            pdf.save(fileName);
-            }
-        } catch (error) {
-            if (error.name !== "AbortError") console.error("Error saving PDF:", error);
-        }
+        return new File([pdfBlob], fileName, { type: "application/pdf" });
     };
 
     const buildPodFileName = () => {
@@ -125,10 +126,10 @@ function ProofOfDelivery() {
         <div className="bg-gray-100 h-auto w-full">
             <div className="flex justify-center mb-4 pt-2">
                 <button
-                    onClick={downloadPDF}
+                    onClick={handleSharePdf}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                    Download PDF
+                    Share PDF
                 </button>
             </div>  
 
