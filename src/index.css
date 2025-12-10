@@ -87,8 +87,8 @@ button:focus-visible {
   width: 900px;   /* ~210mm at 96dpi */
   /* height: 1123px; ~297mm at 96dpi */
   padding: 2rem;  /* adjust as needed */
-  margin-left: 15vw;
-  margin-right: 20vw;
+  margin-left: auto;
+  margin-right: auto;
   box-sizing: border-box;
 }
 
@@ -109,7 +109,7 @@ button:focus-visible {
 
 @media (max-width: 375px) {
   .pod-a4 {
-    margin-left: 11vw;
+    margin-left: auto;
   }
 }
 
@@ -118,4 +118,3 @@ button:focus-visible {
     margin-left: auto;
   }
 }
-

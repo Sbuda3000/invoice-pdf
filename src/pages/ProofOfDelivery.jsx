@@ -24,12 +24,6 @@ function ProofOfDelivery() {
         localStorage.setItem("lastPodNumber", num);
     };
 
-    // Manual increment/decrement
-    const incrementPodNumber = () => savePodNumber(podNumber + 1);
-    const decrementPodNumber = () => {
-        if (podNumber > 33800) savePodNumber(podNumber - 1);
-    };
-
     const downloadPDF = async () => {
         const element = document.getElementById("pod-content");
         if (!element) return;
@@ -129,27 +123,7 @@ function ProofOfDelivery() {
  
     return ( 
         <div className="bg-gray-100 h-auto w-full">
-            <div className="max-w-4xl mx-auto flex justify-around items-center mb-4 pt-2">
-                <div className="flex items-center space-x-2">
-                    <button
-                        onClick={decrementPodNumber}
-                        className="px-3 py-1 bg-gray-300 text-black rounded hover:bg-gray-400"
-                    >
-                        –
-                    </button>
-
-                    <span className="font-semibold text-lg text-gray-800">
-                        POD No: #{podNumber}
-                    </span>
-
-                    <button
-                        onClick={incrementPodNumber}
-                        className="px-3 py-1 bg-gray-300 text-black rounded hover:bg-gray-400"
-                    >
-                        +
-                    </button>
-                </div>
-
+            <div className="flex justify-center mb-4 pt-2">
                 <button
                     onClick={downloadPDF}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
