@@ -28,26 +28,46 @@ function ProofOfDelivery() {
     const incrementPodNumber = () => savePodNumber(podNumber + 1);
 
     const handleSharePdf = async () => {
-        const file = await generatePdfFile();
-        if (!file) return;
-
-        if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
-            alert("Your device does not support sharing files.");
-            return;
-        }
-
+        let reservation;
         try {
+            // 1. Reserve
+            reservation = await reservePod(driverId, { orderNo: formData.orderNo });
+            const row = Array.isArray(reservation) ? reservation[0] : reservation;
+            const { reservation_id, pod_number } = row;
+
+            setPodNumber(pod_number);
+
+            // wait for UI re-render so number appears before PDF generation
+            await new Promise(r => setTimeout(r, 50));
+
+            // 2. Generate PDF file
+            const pdfFile = await generatePdfFile(pod_number);
+            if (!pdfFile) {
+                await releasePod(reservation_id);
+                throw new Error('PDF generation failed');
+            }
+
+            // 3. Share
+            if (!navigator.canShare || !navigator.canShare({ files: [pdfFile] })) {
+                await releasePod(reservation_id);
+            alert('Sharing not supported on this device.');
+                return;
+            }
+
             await navigator.share({
-                title: "Proof of Delivery",
-                text: "Please find attached the POD.",
-                files: [file],     // attachment, not link
+                title: `POD ${pod_number}`,
+                text: 'Attached POD',
+                files: [pdfFile],
             });
 
-            // Auto-increment after successful share
-            incrementPodNumber();
-
-        } catch (e) {
-            if (e.name !== "AbortError") console.error("Share failed:", e);
+            // 4. Confirm if successful
+            await confirmPod(reservation_id);
+        } catch (err) {
+            console.error(err);
+            if (reservation?.reservation_id) {
+                await releasePod(reservation.reservation_id).catch(() => {});
+            }
+            alert(err.message || 'Sharing failed.');
         }
     };
 
