@@ -9,6 +9,8 @@ function ProofOfDelivery() {
     const formData = location.state || {};
 
     const [podNumber, setPodNumber] = useState(33800);
+    const [busy, setBusy] = useState(false);
+    const [reservation, setReservation] = useState(null); // holds server reservation row
 
     // Convert date to locale string
     const formattedDate = formData.date ? new Date(formData.date).toLocaleDateString() : "";
@@ -23,70 +25,158 @@ function ProofOfDelivery() {
         setPodNumber(num);
         localStorage.setItem("lastPodNumber", num);
     };
+    const BASE = "https://invoice-pdf-sepia.vercel.app"; // relative URLs work on Vercel; override if needed
+
+    async function reservePodApi(reserved_by = null, metadata = {}) {
+        const res = await fetch(`${BASE}/api/reserve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reserved_by, metadata }),
+        });
+        if (!res.ok) {
+        const txt = await res.text().catch(()=>null);
+        throw new Error(`Reserve failed: ${res.status} ${txt || ""}`);
+        }
+        const data = await res.json();
+        // Supabase RPC often returns array; normalize to single object
+        return Array.isArray(data) ? data[0] : data;
+    }
+
+    async function confirmPodApi(reservation_id) {
+        const res = await fetch(`${BASE}/api/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservation_id }),
+        });
+        if (!res.ok) {
+        const txt = await res.text().catch(()=>null);
+        throw new Error(`Confirm failed: ${res.status} ${txt || ""}`);
+        }
+        const data = await res.json();
+        return Array.isArray(data) ? data[0] : data;
+    }
+
+    async function releasePodApi(reservation_id) {
+        const res = await fetch(`${BASE}/api/release`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservation_id }),
+        });
+        if (!res.ok) {
+        const txt = await res.text().catch(()=>null);
+        throw new Error(`Release failed: ${res.status} ${txt || ""}`);
+        }
+        const data = await res.json();
+        return Array.isArray(data) ? data[0] : data;
+    }
 
     // Manual increment/decrement
     const incrementPodNumber = () => savePodNumber(podNumber + 1);
 
     const handleSharePdf = async () => {
-        let reservation;
+        setBusy(true);
+        let localReservation = reservation;
+
+        // driverId source — adapt as needed
+        const driverId = localStorage.getItem("driverId") || "unknown-driver";
+
         try {
-            // 1. Reserve
-            reservation = await reservePod(driverId, { orderNo: formData.orderNo });
-            const row = Array.isArray(reservation) ? reservation[0] : reservation;
-            const { reservation_id, pod_number } = row;
+        // 1) Reserve if we don't already have a reservation
+        if (!localReservation) {
+            const res = await reservePodApi(driverId, { orderNo: formData.orderNo });
+            localReservation = res;
+            setReservation(localReservation);
 
-            setPodNumber(pod_number);
-
-            // wait for UI re-render so number appears before PDF generation
-            await new Promise(r => setTimeout(r, 50));
-
-            // 2. Generate PDF file
-            const pdfFile = await generatePdfFile(pod_number);
-            if (!pdfFile) {
-                await releasePod(reservation_id);
-                throw new Error('PDF generation failed');
+            // normalize returned fields (some RPCs might return camelCase or snake_case)
+            const pod_number = localReservation.pod_number ?? localReservation.podNumber ?? localReservation.podNumber;
+            if (!pod_number && pod_number !== 0) {
+            throw new Error("Server did not return pod_number");
             }
+            setPodNumber(Number(pod_number));
+            // wait a tick so DOM updates show the pod number before capture
+            await new Promise((r) => setTimeout(r, 80));
+        }
 
-            // 3. Share
-            if (!navigator.canShare || !navigator.canShare({ files: [pdfFile] })) {
-                await releasePod(reservation_id);
-            alert('Sharing not supported on this device.');
-                return;
-            }
+        // 2) Generate PDF blob
+        const pdfBlob = await generatePdfBlob(localReservation.pod_number ?? localReservation.podNumber ?? podNumber);
+        if (!pdfBlob) {
+            // release reservation if generation failed
+            await releasePodApi(localReservation.reservation_id).catch(()=>{});
+            throw new Error("PDF generation failed");
+        }
 
+        // 3) Create file & attempt native share
+        const fileName = buildPodFileName(localReservation.pod_number ?? localReservation.podNumber ?? podNumber);
+        const pdfFile = new File([pdfBlob], fileName, { type: "application/pdf", lastModified: Date.now() });
+
+        // If native share with files supported, use it (preferred)
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
             await navigator.share({
-                title: `POD ${pod_number}`,
-                text: 'Attached POD',
-                files: [pdfFile],
+            title: `Proof of Delivery`,
+            text: `POD ${localReservation.pod_number ?? podNumber}`,
+            files: [pdfFile],
             });
 
-            // 4. Confirm if successful
-            await confirmPod(reservation_id);
+            // 4) Confirm reservation after successful share
+            await confirmPodApi(localReservation.reservation_id);
+            // Persist as last used pod number
+            savePodNumber(localReservation.pod_number ?? podNumber);
+
+            // cleanup local reservation state
+            setReservation(null);
+            alert("POD shared and confirmed.");
+        } else {
+            // Fallback: force a download (still mark as confirmed so number is consumed)
+            const url = URL.createObjectURL(pdfBlob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+
+            // Confirm the reservation server-side (we consumed the POD by downloading it)
+            await confirmPodApi(localReservation.reservation_id);
+            savePodNumber(localReservation.pod_number ?? podNumber);
+            setReservation(null);
+            alert("POD downloaded and confirmed.");
+        }
         } catch (err) {
-            console.error(err);
-            if (reservation?.reservation_id) {
-                await releasePod(reservation.reservation_id).catch(() => {});
+        console.error("Share flow error:", err);
+        // If we had a reservation and it's still reserved, release it so another device can take the number
+        if (localReservation?.reservation_id) {
+            try {
+            await releasePodApi(localReservation.reservation_id);
+            } catch (releaseErr) {
+            console.warn("Release failed:", releaseErr);
             }
-            alert(err.message || 'Sharing failed.');
+        }
+        alert(err.message || "Unable to share POD.");
+        } finally {
+        setBusy(false);
         }
     };
 
-    const generatePdfFile = async () => {
+    const generatePdfBlob = async (podNum) => {
         const element = document.getElementById("pod-content");
-        if (!element) return null;
+        if (!element) throw new Error("POD content element not found");
 
+        // Ensure the pod number is visible in the DOM prior to capture (we set it earlier)
+        // Render at moderate scale to keep file size reasonable
         const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: element.scrollWidth,
-            windowHeight: element.scrollHeight,
+        scale: Math.max(1.5, window.devicePixelRatio || 2),
+        useCORS: true,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
         });
 
-        const pdf = new jsPDF("p", "mm", "a4");
-        const imgData = canvas.toDataURL("image/png");
+        // Use JPEG inside PDF to keep size down and compatibility up
+        const imgData = canvas.toDataURL("image/jpeg", 0.92);
 
+        const pdf = new jsPDF("p", "mm", "a4");
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
 
@@ -98,28 +188,26 @@ function ProofOfDelivery() {
         let renderWidth, renderHeight, x, y;
 
         if (Math.abs(imgRatio - pageRatio) < 0.01) {
-            renderWidth = pdfWidth;
-            renderHeight = pdfHeight;
-            x = 0;
-            y = 0;
+        renderWidth = pdfWidth;
+        renderHeight = pdfHeight;
+        x = 0;
+        y = 0;
         } else if (imgRatio > pageRatio) {
-            renderWidth = pdfWidth;
-            renderHeight = pdfWidth / imgRatio;
-            x = 0;
-            y = (pdfHeight - renderHeight) / 2;
+        renderWidth = pdfWidth;
+        renderHeight = pdfWidth / imgRatio;
+        x = 0;
+        y = (pdfHeight - renderHeight) / 2;
         } else {
-            renderHeight = pdfHeight;
-            renderWidth = pdfHeight * imgRatio;
-            x = (pdfWidth - renderWidth) / 2;
-            y = 0;
+        renderHeight = pdfHeight;
+        renderWidth = pdfHeight * imgRatio;
+        x = (pdfWidth - renderWidth) / 2;
+        y = 0;
         }
 
-        pdf.addImage(imgData, "PNG", x, y, renderWidth, renderHeight);
+        // Use JPEG image for smaller PDF sizes
+        pdf.addImage(imgData, "JPEG", x, y, renderWidth, renderHeight);
 
-        const fileName = buildPodFileName();
-        const pdfBlob = pdf.output("blob");
-
-        return new File([pdfBlob], fileName, { type: "application/pdf" });
+        return pdf.output("blob");
     };
 
     const buildPodFileName = () => {

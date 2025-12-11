@@ -202,8 +202,6 @@ function Home () {
         const cssWidth = Math.min(vw * 0.75, 558);
         const cssHeight = Math.min(vh * 0.6, 250);
 
-        console.log(`Canvas CSS Size: ${cssWidth}x${cssHeight}`);
-        console.log(Math.round(cssWidth * DPR))
         return {
             width: Math.round(cssWidth * DPR),
             height: Math.round(cssHeight * DPR),
