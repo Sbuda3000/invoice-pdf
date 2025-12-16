@@ -252,7 +252,7 @@ function ProofOfDelivery() {
                             </tr>
                             <tr >
                                 <th className="px-4 pt-2 pb-4 border border-gray-400 w-40 bg-blue-100">ORDER NO</th>
-                                <th className="px-4 pt-2 pb-4 border border-gray-400 w-24"> { formData.orderNo } </th>
+                                <th className="px-4 pt-2 pb-4 border border-gray-400 w-24 break-words"> { formData.orderNo } </th>
                             </tr>
                         </thead>
                     </table>
@@ -293,7 +293,7 @@ function ProofOfDelivery() {
                         <table className="table-fixed w-full pointer-events-none text-black text-xs">
                             <tbody>
                                 <tr>
-                                    <td className="px-4 pt-2 pb-4 border border-gray-400 border-t-0 h-8"> { formData.deliverToLine2 } </td>
+                                    <td className="px-4 pt-2 pb-4 border border-gray-400 border-t-0 h-8 whitespace-pre-wrap"> { formData.deliverToLine2 || "  " } </td>
                                 </tr>
                             </tbody>
                         </table>
