@@ -2,6 +2,7 @@ import Modal from 'react-modal';
 import { useEffect, useRef, useState } from "react";
 import SignaturePad from "react-signature-canvas";
 import { useNavigate } from 'react-router-dom';
+import { supabase } from "../lib/supabase";
 
 Modal.setAppElement('#root');
 
@@ -70,11 +71,14 @@ function Home () {
         setIsOpen(false);
     }
 
-    const handleFormSubmit = (e) => {
+    const handleFormSubmit = async (e) => {
         e.preventDefault();
-
         const formData = new FormData(e.currentTarget);
+
+        const podNumber = await getCurrentPodNumber();
+
         const formDataObj = {
+            podNumber,
             deliverToLine1: formData.get('deliverToLine1'),
             deliverToLine2: formData.get('deliverToLine2'),
             orderNo: formData.get('orderNo'),
@@ -144,7 +148,6 @@ function Home () {
         }
     };
 
-
     const addItem = () => {
         setItems([...items, { id: Date.now() + Math.random(), quantity: '', description: '' }]);
     };
@@ -208,6 +211,12 @@ function Home () {
             style: { width: `${Math.round(cssWidth)}px`, height: `${Math.round(cssHeight)}px` },
         };
     };
+
+    async function getCurrentPodNumber() {
+        const { data, error } = await supabase.rpc("get_current_pod_number");
+        if (error) throw error;
+        return data;
+    }
 
     useEffect(() => {
         // compute today in YYYY-MM-DD
