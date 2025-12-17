@@ -1,23 +1,17 @@
 import { useLocation } from "react-router";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { useEffect, useState } from "react";
-
+import { useState } from "react";
+import { supabase } from "../lib/supabase";
 
 function ProofOfDelivery() {
     const location = useLocation();
     const formData = location.state || {};
 
-    const [podNumber, setPodNumber] = useState(33800);
     const [busy, setBusy] = useState(false);
 
     // Convert date to locale string
     const formattedDate = formData.date ? new Date(formData.date).toLocaleDateString() : "";
-
-    useEffect(() => {
-        const lastNumber = localStorage.getItem("lastPodNumber");
-        setPodNumber(lastNumber ? parseInt(lastNumber, 10) : 33800);
-    }, []);
 
     const handleSharePdf = async () => {
         setBusy(true);
@@ -35,6 +29,10 @@ function ProofOfDelivery() {
                 text: "Please find attached the POD.",
                 files: [file],     // attachment, not link
             });
+
+            await supabase.rpc('confirm_pod_share', {
+                p_pod_number: formData.podNumber
+            });
         } catch (e) {
             if (e.name !== "AbortError") console.error("Share failed:", e);
         }
@@ -43,6 +41,15 @@ function ProofOfDelivery() {
     const generatePdfFile = async () => {
         const element = document.getElementById("pod-content");
         if (!element) return null;
+
+        const pod_number = formData.podNumber;
+
+        await supabase
+            .from('pods')
+            .insert({
+                pod_number,
+                status: 'draft'
+        });
 
         const canvas = await html2canvas(element, {
             scale: 2,
@@ -108,7 +115,7 @@ function ProofOfDelivery() {
             })
             : "Unknown Date";
 
-        return `POD ${podNumber} for ${rawRecipient} for ${formattedLongDate}.pdf`;
+        return `POD ${formData.podNumber} for ${rawRecipient} for ${formattedLongDate}.pdf`;
     };
  
     return ( 
@@ -193,11 +200,6 @@ function ProofOfDelivery() {
                         </tr>
                     </thead>
                     <tbody>
-                        {/* <tr colSpan={6} className="align-top">
-                            <td className="pr-4 relative">
-                                <p className="text-red-500">#{podNumber}</p>
-                            </td>
-                        </tr> */}
                         <tr>
                             <td colSpan={6}>
                                 <table className="table-fixed min-w-full text-left border border-amber-100 mt-[-5px]">

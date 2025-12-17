@@ -75,7 +75,7 @@ function Home () {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
 
-        const podNumber = await getCurrentPodNumber();
+        const podNumber = await getCurrentPodNumber(); 
 
         const formDataObj = {
             podNumber,
