@@ -45,6 +45,8 @@ function Home () {
     const [signature, setSignature] = useState(null);
     const [formData, setFormData] = useState(null);
     const [today, setToday] = useState("");
+    const [isMobile, setIsMobile] = useState(false);
+    const [province, setProvince] = useState("");
     
     const [items, setItems] = useState([
         { id: Date.now(), item: '', quantity: '', rate: '' }
@@ -55,7 +57,6 @@ function Home () {
         height: 400,
         style: { width: "400px", height: "200px" },
     });
-    const [isMobile, setIsMobile] = useState(false);
 
     function openModal() {
         setIsOpen(true);
@@ -86,6 +87,7 @@ function Home () {
             onBehalf: formData.get('onBehalf'),
             instructor: formData.get('instructor'),
             receivedBy: formData.get('receivedBy'),
+            province,
             items
         };
         setFormData(formDataObj);
@@ -218,6 +220,10 @@ function Home () {
         return data;
     }
 
+    const handleProvinceChange = (e) => {
+        setProvince(e.target.value);
+    }
+
     useEffect(() => {
         // compute today in YYYY-MM-DD
         const now = new Date();
@@ -346,6 +352,29 @@ function Home () {
                                     placeholder="Name of person receiving"
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
                                 />
+                            </div>
+                            <div>
+                                <label htmlFor="provinceDropdown" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Province
+                                </label>
+                                <select 
+                                    id="provinceDropdown"
+                                    name="province"
+                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+                                    value={province}
+                                    onChange={handleProvinceChange}
+                                >
+                                    <option value="">Select Province</option>
+                                    <option value="EC ">Eastern Cape</option>
+                                    <option value="FS ">Free State</option>
+                                    <option value="GP ">Gauteng</option>
+                                    <option value="KZN">KwaZulu-Natal</option>
+                                    <option value="L  ">Limpopo</option>
+                                    <option value="MP ">Mpumalanga</option>
+                                    <option value="NC ">Northern Cape</option>
+                                    <option value="NW ">North West</option>  
+                                    <option value="WC ">Western Cape</option>
+                                </select>
                             </div>
                         </div>
 

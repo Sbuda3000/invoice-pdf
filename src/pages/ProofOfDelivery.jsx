@@ -130,7 +130,7 @@ function ProofOfDelivery() {
             </div>  
 
             <div id="pod-content" className="bg-white px-8 py-14 rounded-lg shadow-md text-sm flex flex-col pod-a4">
-                <p className="text-black text-center font-bold">DELIVERY NOTE <span className="absolute left-[60%] text-4xl font-bold text-red-500 whitespace-pre-wrap" style={{fontFamily: "SoftItalics" }}>N <span className="absolute left-[12%] bottom-[10%]">ọ</span> { formData.podNumber }</span> </p>
+                <p className="text-black text-center font-bold">DELIVERY NOTE <span className="absolute left-[54%] text-4xl font-bold text-red-500 whitespace-pre-wrap" style={{fontFamily: "SoftItalics" }}> <span>{formData.province + " "}N</span> <span className="absolute left-[46%] bottom-[10%]">ọ</span> { formData.podNumber }</span></p>
                 <div className="flex justify-between">
                     <table className="table-fixed w-80 h-16">
                         <thead className="w-64 text-black text-left text-xs">
